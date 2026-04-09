@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoC Spec Summary Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans+KR:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--sf:#161b22;--sf2:#21262d;--sf3:#2d333b;--bd:#30363d;--bd2:#444c56;--ac:#58a6ff;--ac2:#1f6feb;--gn:#3fb950;--or:#d29922;--rd:#f85149;--pu:#a371f7;--tx:#e6edf3;--tx2:#8b949e;--tx3:#6e7681;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans KR',sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);min-height:100vh;font-size:13px;}
+.hd{background:var(--sf);border-bottom:1px solid var(--bd);padding:11px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:10px;flex-wrap:wrap;}
+.logo{width:30px;height:30px;background:linear-gradient(135deg,var(--ac2),var(--pu));border-radius:7px;display:flex;align-items:center;justify-content:center;font:700 13px var(--mono);color:#fff;flex-shrink:0;}
+.ttl{font-size:14px;font-weight:600;}
+.sub{font-size:10px;color:var(--tx2);}
+.ha{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:6px;border:1px solid var(--bd);font:500 12px var(--sans);cursor:pointer;transition:all .15s;white-space:nowrap;background:var(--sf2);color:var(--tx);}
+.btn:hover{background:var(--sf3);border-color:var(--bd2);}
+.btn-ac{background:var(--ac2);border-color:var(--ac);color:#fff;}.btn-ac:hover{background:var(--ac);}
+.btn-gn{background:rgba(63,185,80,.14);border-color:var(--gn);color:var(--gn);}.btn-gn:hover{background:rgba(63,185,80,.26);}
+.btn-ed{background:rgba(163,113,247,.14);border-color:var(--pu);color:var(--pu);}.btn-ed:hover{background:rgba(163,113,247,.26);}
+.btn-sv{background:rgba(210,153,34,.14);border-color:var(--or);color:var(--or);}.btn-sv:hover{background:rgba(210,153,34,.26);}
+.btn-ok{background:rgba(63,185,80,.14);border-color:var(--gn);color:var(--gn);}
+.btn svg{width:12px;height:12px;flex-shrink:0;}
+.dd{width:1px;height:20px;background:var(--bd);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--or);display:none;animation:bl 1.4s infinite;}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.2}}
+.tb{padding:9px 18px;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+.tl{font-size:11px;color:var(--tx2);}
+.tbtn{padding:3px 9px;border-radius:5px;border:1px solid var(--bd);background:var(--sf2);color:var(--tx2);font:11px var(--sans);cursor:pointer;transition:all .15s;}
+.tbtn.on{background:rgba(88,166,255,.14);border-color:var(--ac);color:var(--ac);}
+.sts{font-size:11px;color:var(--tx3);}
+.cnt{margin-left:auto;font-size:11px;color:var(--tx2);background:var(--sf2);padding:3px 9px;border-radius:20px;border:1px solid var(--bd);}
+.tw{overflow:auto;padding:14px 18px 100px;}
+table{border-collapse:separate;border-spacing:0;white-space:nowrap;}
+thead th{border:1px solid var(--bd);padding:0;}
+thead tr.rc th{background:var(--sf2);min-width:130px;}
+thead tr.rc th.f1{background:var(--sf3);min-width:85px;position:sticky;left:0;z-index:12;}
+thead tr.rc th.f2{background:var(--sf3);min-width:115px;position:sticky;left:85px;z-index:12;}
+.ch{display:flex;align-items:center;justify-content:center;gap:4px;padding:8px 9px;}
+.cn{font:600 12px var(--mono);color:var(--ac);}
+.cn.ed{cursor:pointer;border-radius:3px;padding:2px 5px;}
+.cn.ed:hover{background:rgba(88,166,255,.14);outline:1px dashed var(--bd2);}
+.fl{padding:9px 11px;font:600 12px var(--mono);color:var(--tx);}
+thead tr.rs th{background:var(--sf);font-size:10px;text-align:center;}
+thead tr.rs th.f1{background:var(--sf);position:sticky;left:0;z-index:12;color:var(--tx3);font-size:9px;}
+thead tr.rs th.f2{background:var(--sf);position:sticky;left:85px;z-index:12;}
+.sv{padding:4px 9px;display:block;white-space:pre-line;}
+.sv.ed{cursor:pointer;border-radius:3px;}
+.sv.ed:hover{background:rgba(88,166,255,.1);outline:1px dashed var(--bd2);}
+.rp .sv{color:var(--or);}
+.re .sv{color:var(--gn);}
+tbody tr:hover td{background:rgba(88,166,255,.03);}
+tbody td{border:1px solid var(--bd);padding:0;vertical-align:middle;}
+tbody td.cc{background:var(--sf2)!important;position:sticky;left:0;z-index:5;border-right:2px solid var(--bd2);}
+tbody td.ic{background:var(--sf)!important;position:sticky;left:85px;z-index:5;border-right:2px solid var(--bd2);}
+tbody td.vc{min-width:130px;text-align:center;}
+tr.nc td{border-top:2px solid var(--bd2)!important;}
+.ci{display:flex;align-items:center;gap:4px;padding:5px 9px;min-height:30px;}
+.ci.ct{justify-content:center;}
+.ct-t{flex:1;font:11.5px var(--mono);color:var(--tx);white-space:pre-wrap;}
+.ct-t.ca{color:var(--tx2);font:500 10px var(--sans);text-transform:uppercase;letter-spacing:.04em;}
+.ct-t.it{color:var(--tx2);}
+.ct-t.em{color:var(--tx3);}
+.ct-t.ep{color:var(--tx2);font-style:italic;font-size:10px;}
+td.edbl .ci{cursor:pointer;}
+td.edbl:hover{background:rgba(88,166,255,.10)!important;outline:1px dashed var(--bd2);outline-offset:-2px;}
+td.edbl .ci:hover{background:transparent;}
+.inp{background:rgba(31,111,235,.15);border:none;color:var(--tx);font:11.5px var(--mono);padding:5px 9px;outline:none;resize:none;width:100%;min-height:30px;line-height:1.5;}
+td.eding{outline:2px solid var(--ac2)!important;outline-offset:-1px;}
+.xb{width:14px;height:14px;border-radius:3px;border:none;background:transparent;color:var(--tx3);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .1s;}
+.xb:hover{background:rgba(248,81,73,.2);color:var(--rd);}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;align-items:center;justify-content:center;}
+.ov.open{display:flex;}
+.md{background:var(--sf);border:1px solid var(--bd);border-radius:11px;padding:20px;min-width:320px;max-width:440px;width:90%;box-shadow:0 18px 50px rgba(0,0,0,.5);}
+.mt{font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.tg{font-size:10px;background:rgba(88,166,255,.14);color:var(--ac);border-radius:4px;padding:2px 6px;}
+.fg{margin-bottom:10px;}
+.lb{display:block;font-size:11px;color:var(--tx2);margin-bottom:3px;font-weight:500;}
+.fi{width:100%;padding:6px 9px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;color:var(--tx);font:12px var(--mono);transition:border .15s;}
+.fi:focus{outline:none;border-color:var(--ac);}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.ma{display:flex;gap:7px;justify-content:flex-end;margin-top:16px;}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:9px 14px;font-size:12px;color:var(--tx);transform:translateY(60px);opacity:0;transition:all .3s;z-index:300;display:flex;align-items:center;gap:7px;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border-color:var(--gn);}
+.toast.wn{border-color:var(--or);}
+</style>
+</head>
+<body>
+<div class="hd">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <div class="logo">Σ</div>
+    <div><div class="ttl">SoC Spec Summary</div><div class="sub">Realtek Korea · TV SoC Platform</div></div>
+  </div>
+  <div class="ha">
+    <button class="btn" onclick="resetData()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3a5 5 0 105 5h-1.5a3.5 3.5 0 11-3.5-3.5V6l3-3-3-3v2A5 5 0 018 3z"></path></svg>초기화</button>
+    <button class="btn" onclick="exportCSV()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a1 1 0 011-1h6.5l4.5 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V2zm7 0v3.5H12.5L9 2z"></path></svg>CSV 내보내기</button>
+    <button class="btn btn-gn" onclick="openModal('mChip')"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.5.5 0 01.5.5v5h5a.5.5 0 010 1h-5v5a.5.5 0 01-1 0v-5h-5a.5.5 0 010-1h5v-5A.5.5 0 018 2z"></path></svg>칩 추가</button>
+    <button class="btn btn-ac" onclick="openModal('mSpec')"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.5.5 0 01.5.5v5h5a.5.5 0 010 1h-5v5a.5.5 0 01-1 0v-5h-5a.5.5 0 010-1h5v-5A.5.5 0 018 2z"></path></svg>스펙 항목 추가</button>
+    <div class="dd"></div>
+    <button class="btn btn-ed" id="eBtn" onclick="toggleEdit()">🔓 편집 중</button>
+    <button class="btn btn-ok" id="sBtn" onclick="saveData()" title="브라우저 localStorage에 저장 (Ctrl+S)"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 010 .708l-7 7a.5.5 0 01-.708 0l-3.5-3.5a.5.5 0 11.708-.708L6.5 10.293l6.646-6.647a.5.5 0 01.708 0z"></path></svg> 임시저장됨</button>
+    <button class="btn btn-gn" onclick="exportHTML()" title="데이터가 내장된 HTML 파일 다운로드 — GitHub에 올리면 바로 사용 가능"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.5.5 0 01.5.5v7.793l2.646-2.647a.5.5 0 01.708.708l-3.5 3.5a.5.5 0 01-.708 0l-3.5-3.5a.5.5 0 11.708-.708L7.5 10.293V2.5A.5.5 0 018 2z"></path><path d="M2 14a1 1 0 011-1h10a1 1 0 010 2H3a1 1 0 01-1-1z"></path></svg>HTML로 저장</button>
+  </div>
+</div>
+<div class="tb">
+  <span class="tl">정렬:</span>
+  <button class="tbtn on" id="s0" onclick="setSort('none')">원본 순서</button>
+  <button class="tbtn" id="s1" onclick="setSort('asc')">A → Z</button>
+  <button class="tbtn" id="s2" onclick="setSort('desc')">Z → A</button>
+  <button class="tbtn" id="s3" onclick="setSort('es')">ES 일정순 ↑</button>
+  <button class="tbtn" id="s4" onclick="setSort('es_desc')">ES 일정순 ↓</button>
+  <div class="dd"></div>
+  <span class="sts" id="sts" style="color: var(--or);">🖥 브라우저 임시저장: 2026. 4. 9. 오후 4:55:34</span>
+  <div class="cnt" id="cnt">14개 칩 · 9개 항목</div>
+</div>
+<div class="tw"><table><thead id="th"><tr class="rc"><th class="f1"><div class="fl">카테고리</div></th><th class="f2"><div class="fl">항목</div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(0)">K8Lp</span>
+      <button class="xb" onclick="delChip(0)">✕</button>
+    </div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(1)">Q1Hp</span>
+      <button class="xb" onclick="delChip(1)">✕</button>
+    </div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(2)">K8Hp+</span>
+      <button class="xb" onclick="delChip(2)">✕</button>
+    </div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(3)">KID23</span>
+      <button class="xb" onclick="delChip(3)">✕</button>
+    </div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(4)">K23F</span>
+      <button class="xb" onclick="delChip(4)">✕</button>
+    </div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(5)">K24</span>
+      <button class="xb" onclick="delChip(5)">✕</button>
+    </div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(6)">K25Lp</span>
+      <button class="xb" onclick="delChip(6)">✕</button>
+    </div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(7)">KID24(RTD2818)</span>
+      <button class="xb" onclick="delChip(7)">✕</button>
+    </div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(8)">KID25W</span>
+      <button class="xb" onclick="delChip(8)">✕</button>
+    </div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(9)">K26</span>
+      <button class="xb" onclick="delChip(9)">✕</button>
+    </div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(10)">KGAI(RTD2811)</span>
+      <button class="xb" onclick="delChip(10)">✕</button>
+    </div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(11)">K27Lp</span>
+      <button class="xb" onclick="delChip(11)">✕</button>
+    </div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(12)">K27Mp</span>
+      <button class="xb" onclick="delChip(12)">✕</button>
+    </div></th><th><div class="ch">
+      <span class="cn ed" title="클릭: 칩명 편집" onclick="editChipName(13)">K28Lp</span>
+      <button class="xb" onclick="delChip(13)">✕</button>
+    </div></th></tr><tr class="rs rp"><th class="f1"><div class="sv" style="font-size:9px;">Platform</div></th><th class="f2"></th><th onclick="editChipField(0,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed">webOS24</div></th><th onclick="editChipField(1,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed"><span style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div></th><th onclick="editChipField(2,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed">webOS23</div></th><th onclick="editChipField(3,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed"><span style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div></th><th onclick="editChipField(4,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed"><span style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div></th><th onclick="editChipField(5,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed">webOS24</div></th><th onclick="editChipField(6,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed">webOS24</div></th><th onclick="editChipField(7,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed"><span style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div></th><th onclick="editChipField(8,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed"><span style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div></th><th onclick="editChipField(9,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed"><span style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div></th><th onclick="editChipField(10,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed"><span style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div></th><th onclick="editChipField(11,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed">webOS27</div></th><th onclick="editChipField(12,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed">webOS27</div></th><th onclick="editChipField(13,'plat',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed">webOS28</div></th></tr><tr class="rs re"><th class="f1"><div class="sv" style="font-size:9px;">ES Schedule</div></th><th class="f2"></th><th onclick="editChipField(0,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'21. 5월</div></th><th onclick="editChipField(1,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'21.7/M</div></th><th onclick="editChipField(2,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'22. 4/25</div></th><th onclick="editChipField(3,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'22. 9월</div></th><th onclick="editChipField(4,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'22. 10월</div></th><th onclick="editChipField(5,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'23. 3/10 (A0)
+,6/30(A1)</div></th><th onclick="editChipField(6,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'24.3월/B</div></th><th onclick="editChipField(7,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'23. 5/29</div></th><th onclick="editChipField(8,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'24. 7/E</div></th><th onclick="editChipField(9,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'25.3/E</div></th><th onclick="editChipField(10,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'25.7/E</div></th><th onclick="editChipField(11,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'26.3/E</div></th><th onclick="editChipField(12,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'26.4/E</div></th><th onclick="editChipField(13,'es',this)" title="클릭: 편집" style="cursor:pointer;"><div class="sv ed" style="white-space:pre-line;">'28.3/E</div></th></tr></thead><tbody id="tb"><tr class=""><td class="cc edbl"><div class="ci"><span class="ct-t ca" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(0,'cat',this)" title="클릭: 카테고리 편집">CPU</span><button class="xb" onclick="delRow(0)">✕</button></div></td><td class="ic edbl"><div class="ci"><span class="ct-t it" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(0,'item',this)" title="클릭: 항목명 편집">Core</span></div></td><td class="vc edbl" onclick="editCell(0,'K8Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CA75 x2 1.0GHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(0,'Q1Hp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CA75 x4 1.92GHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(0,'K8Hp+',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CA75 x2 1.1GHz
+CA55 x2 1.15GHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(0,'KID23',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CA55 x4 1.8GHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(0,'K23F',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CA55 x4 1.8GHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(0,'K24',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CA73 x4 1.8GHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(0,'K25Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CA73 x4 1.3GHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(0,'KID24(RTD2818)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CA73 x4 1.8GHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(0,'KID25W',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CA76 x4 1.8GHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(0,'K26',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CA73 x4 1.9GHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(0,'KGAI(RTD2811)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CA73 x2 1.9GHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(0,'K27Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CA73 x4 1.3Ghz</span></div>
+        </td><td class="vc edbl" onclick="editCell(0,'K27Mp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CA73 x4 1.5Ghz</span></div>
+        </td><td class="vc edbl" onclick="editCell(0,'K28Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td></tr><tr class=""><td class="cc edbl"><div class="ci"><span class="ct-t ca" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(1,'cat',this)" title="클릭: 카테고리 편집">CPU</span><button class="xb" onclick="delRow(1)">✕</button></div></td><td class="ic edbl"><div class="ci"><span class="ct-t it" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(1,'item',this)" title="클릭: 항목명 편집">DMIPS</span></div></td><td class="vc edbl" onclick="editCell(1,'K8Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">12520</span></div>
+        </td><td class="vc edbl" onclick="editCell(1,'Q1Hp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td><td class="vc edbl" onclick="editCell(1,'K8Hp+',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">13991</span></div>
+        </td><td class="vc edbl" onclick="editCell(1,'KID23',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">20376</span></div>
+        </td><td class="vc edbl" onclick="editCell(1,'K23F',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">15768</span></div>
+        </td><td class="vc edbl" onclick="editCell(1,'K24',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">22464</span></div>
+        </td><td class="vc edbl" onclick="editCell(1,'K25Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">16224</span></div>
+        </td><td class="vc edbl" onclick="editCell(1,'KID24(RTD2818)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">27360</span></div>
+        </td><td class="vc edbl" onclick="editCell(1,'KID25W',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">34920</span></div>
+        </td><td class="vc edbl" onclick="editCell(1,'K26',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">28880</span></div>
+        </td><td class="vc edbl" onclick="editCell(1,'KGAI(RTD2811)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td><td class="vc edbl" onclick="editCell(1,'K27Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">16224</span></div>
+        </td><td class="vc edbl" onclick="editCell(1,'K27Mp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td><td class="vc edbl" onclick="editCell(1,'K28Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td></tr><tr class=""><td class="cc edbl"><div class="ci"><span class="ct-t ca" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(2,'cat',this)" title="클릭: 카테고리 편집">GPU</span><button class="xb" onclick="delRow(2)">✕</button></div></td><td class="ic edbl"><div class="ci"><span class="ct-t it" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(2,'item',this)" title="클릭: 항목명 편집"><span class="ep">없음</span></span></div></td><td class="vc edbl" onclick="editCell(2,'K8Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">IMG BXE 700MHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(2,'Q1Hp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">G57 2EE MC3 1GHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(2,'K8Hp+',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">IMG BXE 700MHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(2,'KID23',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">G31 MC2 950MHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(2,'K23F',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">G31 MP2 950MHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(2,'K24',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">G57 2EE MC1 800MHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(2,'K25Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">IMG CXM 750MHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(2,'KID24(RTD2818)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">G57 MC1 800MHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(2,'KID25W',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">IMG CXM-4-128</span></div>
+        </td><td class="vc edbl" onclick="editCell(2,'K26',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">G57 2EE MC1 900MHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(2,'KGAI(RTD2811)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">IMG CXM 900MHz</span></div>
+        </td><td class="vc edbl" onclick="editCell(2,'K27Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CXM-2-64 750Mhz</span></div>
+        </td><td class="vc edbl" onclick="editCell(2,'K27Mp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">CXM-2-64 750Mhz</span></div>
+        </td><td class="vc edbl" onclick="editCell(2,'K28Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td></tr><tr class=""><td class="cc edbl"><div class="ci"><span class="ct-t ca" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(3,'cat',this)" title="클릭: 카테고리 편집">NPU</span><button class="xb" onclick="delRow(3)">✕</button></div></td><td class="ic edbl"><div class="ci"><span class="ct-t it" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(3,'item',this)" title="클릭: 항목명 편집"><span class="ep">없음</span></span></div></td><td class="vc edbl" onclick="editCell(3,'K8Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">0.54 TOPS</span></div>
+        </td><td class="vc edbl" onclick="editCell(3,'Q1Hp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">1.53TOPS</span></div>
+        </td><td class="vc edbl" onclick="editCell(3,'K8Hp+',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">0.54 TOPS</span></div>
+        </td><td class="vc edbl" onclick="editCell(3,'KID23',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">x</span></div>
+        </td><td class="vc edbl" onclick="editCell(3,'K23F',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">x</span></div>
+        </td><td class="vc edbl" onclick="editCell(3,'K24',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">1TOPS</span></div>
+        </td><td class="vc edbl" onclick="editCell(3,'K25Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">x</span></div>
+        </td><td class="vc edbl" onclick="editCell(3,'KID24(RTD2818)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">1TOPS</span></div>
+        </td><td class="vc edbl" onclick="editCell(3,'KID25W',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">3.6TOPS</span></div>
+        </td><td class="vc edbl" onclick="editCell(3,'K26',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">4TOPS</span></div>
+        </td><td class="vc edbl" onclick="editCell(3,'KGAI(RTD2811)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">20TOPS</span></div>
+        </td><td class="vc edbl" onclick="editCell(3,'K27Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">x</span></div>
+        </td><td class="vc edbl" onclick="editCell(3,'K27Mp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">x</span></div>
+        </td><td class="vc edbl" onclick="editCell(3,'K28Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td></tr><tr class=""><td class="cc edbl"><div class="ci"><span class="ct-t ca" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(4,'cat',this)" title="클릭: 카테고리 편집">DDR</span><button class="xb" onclick="delRow(4)">✕</button></div></td><td class="ic edbl"><div class="ci"><span class="ct-t it" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(4,'item',this)" title="클릭: 항목명 편집">Structure</span></div></td><td class="vc edbl" onclick="editCell(4,'K8Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">KGD DDR4</span></div>
+        </td><td class="vc edbl" onclick="editCell(4,'Q1Hp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">LPDDR4 x96</span></div>
+        </td><td class="vc edbl" onclick="editCell(4,'K8Hp+',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">KGD DDR4</span></div>
+        </td><td class="vc edbl" onclick="editCell(4,'KID23',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">Ext DDR4 x32</span></div>
+        </td><td class="vc edbl" onclick="editCell(4,'K23F',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">+ Ext DDR4</span></div>
+        </td><td class="vc edbl" onclick="editCell(4,'K24',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">KGD DDR4
++ Ext DDR4</span></div>
+        </td><td class="vc edbl" onclick="editCell(4,'K25Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">KGD DDR4</span></div>
+        </td><td class="vc edbl" onclick="editCell(4,'KID24(RTD2818)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">Ext DDR4 x64
+Ext DDR4 (LPDDR4) x32</span></div>
+        </td><td class="vc edbl" onclick="editCell(4,'KID25W',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">KGD DDR4</span></div>
+        </td><td class="vc edbl" onclick="editCell(4,'K26',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">KGD DDR4</span></div>
+        </td><td class="vc edbl" onclick="editCell(4,'KGAI(RTD2811)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">LPDDR4
+LPDDR5</span></div>
+        </td><td class="vc edbl" onclick="editCell(4,'K27Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">KGD DDR4</span></div>
+        </td><td class="vc edbl" onclick="editCell(4,'K27Mp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">KGD DDR4</span></div>
+        </td><td class="vc edbl" onclick="editCell(4,'K28Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td></tr><tr class=""><td class="cc edbl"><div class="ci"><span class="ct-t ca" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(5,'cat',this)" title="클릭: 카테고리 편집">DDR</span><button class="xb" onclick="delRow(5)">✕</button></div></td><td class="ic edbl"><div class="ci"><span class="ct-t it" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(5,'item',this)" title="클릭: 항목명 편집">Bandwidth</span></div></td><td class="vc edbl" onclick="editCell(5,'K8Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">16GB/s</span></div>
+        </td><td class="vc edbl" onclick="editCell(5,'Q1Hp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">51GB/s</span></div>
+        </td><td class="vc edbl" onclick="editCell(5,'K8Hp+',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">21GB/s</span></div>
+        </td><td class="vc edbl" onclick="editCell(5,'KID23',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td><td class="vc edbl" onclick="editCell(5,'K23F',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">11GB/s</span></div>
+        </td><td class="vc edbl" onclick="editCell(5,'K24',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">21GB/s</span></div>
+        </td><td class="vc edbl" onclick="editCell(5,'K25Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">19GB/s</span></div>
+        </td><td class="vc edbl" onclick="editCell(5,'KID24(RTD2818)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td><td class="vc edbl" onclick="editCell(5,'KID25W',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td><td class="vc edbl" onclick="editCell(5,'K26',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">25.6GB/s</span></div>
+        </td><td class="vc edbl" onclick="editCell(5,'KGAI(RTD2811)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">34.1 / 51GB/s</span></div>
+        </td><td class="vc edbl" onclick="editCell(5,'K27Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td><td class="vc edbl" onclick="editCell(5,'K27Mp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td><td class="vc edbl" onclick="editCell(5,'K28Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td></tr><tr class=""><td class="cc edbl"><div class="ci"><span class="ct-t ca" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(6,'cat',this)" title="클릭: 카테고리 편집">DDR</span><button class="xb" onclick="delRow(6)">✕</button></div></td><td class="ic edbl"><div class="ci"><span class="ct-t it" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(6,'item',this)" title="클릭: 항목명 편집">Density</span></div></td><td class="vc edbl" onclick="editCell(6,'K8Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">1.5GB</span></div>
+        </td><td class="vc edbl" onclick="editCell(6,'Q1Hp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">Up to 6GB</span></div>
+        </td><td class="vc edbl" onclick="editCell(6,'K8Hp+',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">2GB</span></div>
+        </td><td class="vc edbl" onclick="editCell(6,'KID23',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">Up to 2GB</span></div>
+        </td><td class="vc edbl" onclick="editCell(6,'K23F',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">1.5GB</span></div>
+        </td><td class="vc edbl" onclick="editCell(6,'K24',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">2GB</span></div>
+        </td><td class="vc edbl" onclick="editCell(6,'K25Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">2GB(1GB + 0.5GBx2)</span></div>
+        </td><td class="vc edbl" onclick="editCell(6,'KID24(RTD2818)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">Up to 4GB</span></div>
+        </td><td class="vc edbl" onclick="editCell(6,'KID25W',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">Up to 4GB</span></div>
+        </td><td class="vc edbl" onclick="editCell(6,'K26',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">Up to 3GB</span></div>
+        </td><td class="vc edbl" onclick="editCell(6,'KGAI(RTD2811)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">Up to 16GB</span></div>
+        </td><td class="vc edbl" onclick="editCell(6,'K27Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td><td class="vc edbl" onclick="editCell(6,'K27Mp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td><td class="vc edbl" onclick="editCell(6,'K28Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td></tr><tr class=""><td class="cc edbl"><div class="ci"><span class="ct-t ca" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(7,'cat',this)" title="클릭: 카테고리 편집">Ball Pitch/Process</span><button class="xb" onclick="delRow(7)">✕</button></div></td><td class="ic edbl"><div class="ci"><span class="ct-t it" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(7,'item',this)" title="클릭: 항목명 편집"><span class="ep">없음</span></span></div></td><td class="vc edbl" onclick="editCell(7,'K8Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">0.8mm / 22nm</span></div>
+        </td><td class="vc edbl" onclick="editCell(7,'Q1Hp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">TBU / 12nm</span></div>
+        </td><td class="vc edbl" onclick="editCell(7,'K8Hp+',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">0.8mm / 22nm</span></div>
+        </td><td class="vc edbl" onclick="editCell(7,'KID23',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">0.75mm / 12nm</span></div>
+        </td><td class="vc edbl" onclick="editCell(7,'K23F',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td><td class="vc edbl" onclick="editCell(7,'K24',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">0.75mm / 12nm</span></div>
+        </td><td class="vc edbl" onclick="editCell(7,'K25Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">0.65mm / 22nm</span></div>
+        </td><td class="vc edbl" onclick="editCell(7,'KID24(RTD2818)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">0.65mm / 12nm</span></div>
+        </td><td class="vc edbl" onclick="editCell(7,'KID25W',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">0.65mm / 12nm</span></div>
+        </td><td class="vc edbl" onclick="editCell(7,'K26',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">0.75mm / 12nm</span></div>
+        </td><td class="vc edbl" onclick="editCell(7,'KGAI(RTD2811)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">0.5mm / 12nm</span></div>
+        </td><td class="vc edbl" onclick="editCell(7,'K27Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">0.65mm/22nm</span></div>
+        </td><td class="vc edbl" onclick="editCell(7,'K27Mp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">0.6mm / 22nm</span></div>
+        </td><td class="vc edbl" onclick="editCell(7,'K28Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td></tr><tr class=""><td class="cc edbl"><div class="ci"><span class="ct-t ca" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(8,'cat',this)" title="클릭: 카테고리 편집">Package</span><button class="xb" onclick="delRow(8)">✕</button></div></td><td class="ic edbl"><div class="ci"><span class="ct-t it" style="cursor:pointer;padding:2px 4px;border-radius:3px;" onclick="editMeta(8,'item',this)" title="클릭: 항목명 편집">Size</span></div></td><td class="vc edbl" onclick="editCell(8,'K8Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">22.7 x 22.7</span></div>
+        </td><td class="vc edbl" onclick="editCell(8,'Q1Hp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">35 x 35</span></div>
+        </td><td class="vc edbl" onclick="editCell(8,'K8Hp+',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">27 x 27</span></div>
+        </td><td class="vc edbl" onclick="editCell(8,'KID23',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">19.8 x 19.8</span></div>
+        </td><td class="vc edbl" onclick="editCell(8,'K23F',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">19.8x19.8</span></div>
+        </td><td class="vc edbl" onclick="editCell(8,'K24',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">22.7 x 27</span></div>
+        </td><td class="vc edbl" onclick="editCell(8,'K25Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">18.9 x 22.6</span></div>
+        </td><td class="vc edbl" onclick="editCell(8,'KID24(RTD2818)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">22.5 x 27</span></div>
+        </td><td class="vc edbl" onclick="editCell(8,'KID25W',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">22.7 x 26.3</span></div>
+        </td><td class="vc edbl" onclick="editCell(8,'K26',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">22.5 x 27</span></div>
+        </td><td class="vc edbl" onclick="editCell(8,'KGAI(RTD2811)',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">17 x 17 / 6 layer</span></div>
+        </td><td class="vc edbl" onclick="editCell(8,'K27Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">17.6 x 21.3
+19.0 x 22.6</span></div>
+        </td><td class="vc edbl" onclick="editCell(8,'K27Mp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t">19x22.7</span></div>
+        </td><td class="vc edbl" onclick="editCell(8,'K28Lp',this)" title="클릭: 편집" style="cursor:pointer;">
+          <div class="ci ct"><span class="ct-t" style="color:var(--tx3);font-style:italic;font-size:10px;">클릭하여 입력</span></div>
+        </td></tr></tbody></table></div>
+
+<!-- Chip modal -->
+<div class="ov" id="mChip">
+  <div class="md">
+    <div class="mt">칩 추가 <span class="tg">NEW CHIP</span></div>
+    <div class="fg"><label class="lb">칩 이름 *</label><input class="fi" id="cN" placeholder="예: K28Lp"></div>
+    <div class="fg"><label class="lb">플랫폼 (선택)</label><input class="fi" id="cP" placeholder="예: webOS25"></div>
+    <div class="fg"><label class="lb">ES 일정 (선택)</label><input class="fi" id="cE" placeholder="예: '27. 3/E"></div>
+    <div class="ma">
+      <button class="btn" onclick="closeModal('mChip')">취소</button>
+      <button class="btn btn-gn" onclick="addChip()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- Spec modal -->
+<div class="ov" id="mSpec">
+  <div class="md">
+    <div class="mt">스펙 항목 추가 <span class="tg">NEW SPEC ROW</span></div>
+    <div class="fr">
+      <div class="fg"><label class="lb">카테고리 *</label><input class="fi" id="sC" list="cL" placeholder="예: CPU"><datalist id="cL"><option value="CPU"></option><option value="GPU"></option><option value="NPU"></option><option value="DDR"></option><option value="Ball Pitch/Process"></option><option value="Package"></option></datalist></div>
+      <div class="fg"><label class="lb">항목명</label><input class="fi" id="sI" placeholder="예: Core"></div>
+    </div>
+    <div class="ma">
+      <button class="btn" onclick="closeModal('mSpec')">취소</button>
+      <button class="btn btn-ac" onclick="addSpec()">추가</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast show wn" id="tst"><span id="tIc">ℹ</span><span id="tMs">브라우저에 임시저장 완료 — 영구보관은 JSON 저장 버튼을 이용하세요</span></div>
+
+<script>
+const DEF_CHIPS=[
+  {name:'K8Lp',plat:'webOS24',es:"'21. 5월"},
+  {name:'Q1Hp',plat:'',es:"'21.7/M"},
+  {name:'K8Hp+',plat:'webOS23',es:"'22. 4/25"},
+  {name:'KID23',plat:'',es:"'22. 9월"},
+  {name:'K23F',plat:'',es:"'22. 10월"},
+  {name:'K24',plat:'webOS24',es:"'23. 3/10 (A0)\n,6/30(A1)"},
+  {name:'K25Lp',plat:'webOS24',es:"'24.3월/B"},
+  {name:'KID24(RTD2818)',plat:'',es:"'23. 5/29"},
+  {name:'KID25W',plat:'',es:"'24. 7/E"},
+  {name:'K26',plat:'',es:"'25.3/E"},
+  {name:'KGAI(RTD2811)',plat:'',es:"'25.7/E"},
+  {name:'K27Lp',plat:'',es:"'26.3/E"},
+  {name:'K27Mp',plat:'',es:"'26.4/E"},
+];
+const DEF_ROWS=[
+  {cat:'CPU',item:'Core',data:{K8Lp:'CA75 x2 1.0GHz',Q1Hp:'CA75 x4 1.92GHz','K8Hp+':'CA75 x2 1.1GHz\nCA55 x2 1.15GHz',KID23:'CA55 x4 1.8GHz',K23F:'CA55 x4 1.8GHz',K24:'CA73 x4 1.8GHz',K25Lp:'CA73 x4 1.3GHz','KID24(RTD2818)':'CA73 x4 1.8GHz',KID25W:'CA76 x4 1.8GHz',K26:'CA73 x4 1.9GHz','KGAI(RTD2811)':'CA73 x2 1.9GHz',K27Lp:'CA73 x4 1.3Ghz',K27Mp:'CA73 x4 1.5Ghz'}},
+  {cat:'CPU',item:'DMIPS',data:{K8Lp:'12520',Q1Hp:'','K8Hp+':'13991',KID23:'20376',K23F:'15768',K24:'22464',K25Lp:'16224','KID24(RTD2818)':'27360',KID25W:'34920',K26:'28880','KGAI(RTD2811)':'',K27Lp:'16224',K27Mp:''}},
+  {cat:'GPU',item:'',data:{K8Lp:'IMG BXE 700MHz',Q1Hp:'G57 2EE MC3 1GHz','K8Hp+':'IMG BXE 700MHz',KID23:'G31 MC2 950MHz',K23F:'G31 MP2 950MHz',K24:'G57 2EE MC1 800MHz',K25Lp:'IMG CXM 750MHz','KID24(RTD2818)':'G57 MC1 800MHz',KID25W:'IMG CXM-4-128',K26:'G57 2EE MC1 900MHz','KGAI(RTD2811)':'IMG CXM 900MHz',K27Lp:'CXM-2-64 750Mhz',K27Mp:'CXM-2-64 750Mhz'}},
+  {cat:'NPU',item:'',data:{K8Lp:'0.54 TOPS',Q1Hp:'1.53TOPS','K8Hp+':'0.54 TOPS',KID23:'x',K23F:'x',K24:'1TOPS',K25Lp:'x','KID24(RTD2818)':'1TOPS',KID25W:'3.6TOPS',K26:'4TOPS','KGAI(RTD2811)':'20TOPS',K27Lp:'x',K27Mp:'x'}},
+  {cat:'DDR',item:'Structure',data:{K8Lp:'KGD DDR4',Q1Hp:'LPD4 x96','K8Hp+':'KGD DDR4',KID23:'Ext DDR4 x32',K23F:'+ Ext DDR4',K24:'KGD DDR4\n+ Ext DDR4',K25Lp:'KGD DDR4','KID24(RTD2818)':'Ext DDR4 x64\nExt DDR4 (LPDDR4) x32',KID25W:'KGD DDR4',K26:'KGD DDR4','KGAI(RTD2811)':'LPDDR4\nLPDDR5',K27Lp:'KGD DDR4',K27Mp:'KGD DDR4'}},
+  {cat:'DDR',item:'Bandwidth',data:{K8Lp:'16GB/s',Q1Hp:'51GB/s','K8Hp+':'21GB/s',KID23:'',K23F:'11GB/s',K24:'21GB/s',K25Lp:'19GB/s','KID24(RTD2818)':'',KID25W:'',K26:'25.6GB/s','KGAI(RTD2811)':'34.1 / 51GB/s',K27Lp:'',K27Mp:''}},
+  {cat:'DDR',item:'Density',data:{K8Lp:'1.5GB',Q1Hp:'Up to 6GB','K8Hp+':'2GB',KID23:'Up to 2GB',K23F:'1.5GB',K24:'2GB',K25Lp:'2GB(1GB + 0.5GBx2)','KID24(RTD2818)':'Up to 4GB',KID25W:'Up to 4GB',K26:'Up to 3GB','KGAI(RTD2811)':'Up to 16GB',K27Lp:'',K27Mp:''}},
+  {cat:'Ball Pitch/Process',item:'',data:{K8Lp:'0.8mm / 22nm',Q1Hp:'TBU / 12nm','K8Hp+':'0.8mm / 22nm',KID23:'0.75mm / 12nm',K23F:'',K24:'0.75mm / 12nm',K25Lp:'0.65mm / 22nm','KID24(RTD2818)':'0.65mm / 12nm',KID25W:'0.65mm / 12nm',K26:'0.75mm / 12nm','KGAI(RTD2811)':'0.5mm / 12nm',K27Lp:'0.65mm/22nm',K27Mp:'0.6mm / 22nm'}},
+  {cat:'Package',item:'Size',data:{K8Lp:'22.7 x 22.7',Q1Hp:'35 x 35','K8Hp+':'27 x 27',KID23:'19.8 x 19.8',K23F:'19.8x19.8',K24:'22.7 x 27',K25Lp:'18.9 x 22.6','KID24(RTD2818)':'22.5 x 27',KID25W:'22.7 x 26.3',K26:'22.5 x 27','KGAI(RTD2811)':'17 x 17 / 6 layer',K27Lp:'17.6 x 21.3\n19.0 x 22.6',K27Mp:'19x22.7'}},
+];
+const SK='soc_v4';
+let chips,rows,srt='none',em=false,dirty=false;
+const cp=o=>JSON.parse(JSON.stringify(o));
+const hx=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function load(){
+  try{
+    const saved=document.getElementById('__saved__');
+    const d=saved?JSON.parse(saved.textContent.replace('var SAVED=','').replace(/;$/,'')):JSON.parse(localStorage.getItem(SK));
+    if(d&&d.chips&&d.rows){chips=d.chips;rows=d.rows;setSts('🖥 브라우저 임시저장 불러옴: '+new Date(d.at).toLocaleString('ko-KR'),'var(--or)');toast('브라우저 임시저장 데이터 불러옴 — JSON 저장으로 영구보관 권장','wn');}
+    else throw 0;
+  }catch(e){chips=cp(DEF_CHIPS);rows=cp(DEF_ROWS);setSts('초기 데이터 (미저장)','var(--tx3)');}
+  setDirty(false);render();
+}
+function saveData(){
+  try{
+    const at=new Date().toISOString();
+    localStorage.setItem(SK,JSON.stringify({chips,rows,at}));
+    setDirty(false);setSts('🖥 브라우저 임시저장: '+new Date(at).toLocaleString('ko-KR'),'var(--or)');
+    const b=document.getElementById('sBtn'),orig=b.innerHTML;
+    b.className='btn btn-ok';b.innerHTML='<svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 010 .708l-7 7a.5.5 0 01-.708 0l-3.5-3.5a.5.5 0 11.708-.708L6.5 10.293l6.646-6.647a.5.5 0 01.708 0z"/></svg> 임시저장됨';
+    setTimeout(()=>{b.className='btn btn-sv';b.innerHTML=orig;},2000);
+    toast('브라우저에 임시저장 완료 — 영구보관은 JSON 저장 버튼을 이용하세요','wn');
+  }catch(e){toast('저장 실패','');}
+}
+
+function exportHTML(){
+  const at = new Date().toISOString();
+  // Build data injection snippet
+  const dataBlock = '
+
+<script id="__saved__">var SAVED={"chips":[{"name":"K8Lp","plat":"webOS24","es":"'21. 5월"},{"name":"Q1Hp","plat":"","es":"'21.7/M"},{"name":"K8Hp+","plat":"webOS23","es":"'22. 4/25"},{"name":"KID23","plat":"","es":"'22. 9월"},{"name":"K23F","plat":"","es":"'22. 10월"},{"name":"K24","plat":"webOS24","es":"'23. 3/10 (A0)\n,6/30(A1)"},{"name":"K25Lp","plat":"webOS24","es":"'24.3월/B"},{"name":"KID24(RTD2818)","plat":"","es":"'23. 5/29"},{"name":"KID25W","plat":"","es":"'24. 7/E"},{"name":"K26","plat":"","es":"'25.3/E"},{"name":"KGAI(RTD2811)","plat":"","es":"'25.7/E"},{"name":"K27Lp","plat":"webOS27","es":"'26.3/E"},{"name":"K27Mp","plat":"webOS27","es":"'26.4/E"},{"name":"K28Lp","plat":"webOS28","es":"'28.3/E"}],"rows":[{"cat":"CPU","item":"Core","data":{"K8Lp":"CA75 x2 1.0GHz","Q1Hp":"CA75 x4 1.92GHz","K8Hp+":"CA75 x2 1.1GHz\nCA55 x2 1.15GHz","KID23":"CA55 x4 1.8GHz","K23F":"CA55 x4 1.8GHz","K24":"CA73 x4 1.8GHz","K25Lp":"CA73 x4 1.3GHz","KID24(RTD2818)":"CA73 x4 1.8GHz","KID25W":"CA76 x4 1.8GHz","K26":"CA73 x4 1.9GHz","KGAI(RTD2811)":"CA73 x2 1.9GHz","K27Lp":"CA73 x4 1.3Ghz","K27Mp":"CA73 x4 1.5Ghz","K28Lp":""}},{"cat":"CPU","item":"DMIPS","data":{"K8Lp":"12520","Q1Hp":"","K8Hp+":"13991","KID23":"20376","K23F":"15768","K24":"22464","K25Lp":"16224","KID24(RTD2818)":"27360","KID25W":"34920","K26":"28880","KGAI(RTD2811)":"","K27Lp":"16224","K27Mp":"","K28Lp":""}},{"cat":"GPU","item":"","data":{"K8Lp":"IMG BXE 700MHz","Q1Hp":"G57 2EE MC3 1GHz","K8Hp+":"IMG BXE 700MHz","KID23":"G31 MC2 950MHz","K23F":"G31 MP2 950MHz","K24":"G57 2EE MC1 800MHz","K25Lp":"IMG CXM 750MHz","KID24(RTD2818)":"G57 MC1 800MHz","KID25W":"IMG CXM-4-128","K26":"G57 2EE MC1 900MHz","KGAI(RTD2811)":"IMG CXM 900MHz","K27Lp":"CXM-2-64 750Mhz","K27Mp":"CXM-2-64 750Mhz","K28Lp":""}},{"cat":"NPU","item":"","data":{"K8Lp":"0.54 TOPS","Q1Hp":"1.53TOPS","K8Hp+":"0.54 TOPS","KID23":"x","K23F":"x","K24":"1TOPS","K25Lp":"x","KID24(RTD2818)":"1TOPS","KID25W":"3.6TOPS","K26":"4TOPS","KGAI(RTD2811)":"20TOPS","K27Lp":"x","K27Mp":"x","K28Lp":""}},{"cat":"DDR","item":"Structure","data":{"K8Lp":"KGD DDR4","Q1Hp":"LPDDR4 x96","K8Hp+":"KGD DDR4","KID23":"Ext DDR4 x32","K23F":"+ Ext DDR4","K24":"KGD DDR4\n+ Ext DDR4","K25Lp":"KGD DDR4","KID24(RTD2818)":"Ext DDR4 x64\nExt DDR4 (LPDDR4) x32","KID25W":"KGD DDR4","K26":"KGD DDR4","KGAI(RTD2811)":"LPDDR4\nLPDDR5","K27Lp":"KGD DDR4","K27Mp":"KGD DDR4","K28Lp":""}},{"cat":"DDR","item":"Bandwidth","data":{"K8Lp":"16GB/s","Q1Hp":"51GB/s","K8Hp+":"21GB/s","KID23":"","K23F":"11GB/s","K24":"21GB/s","K25Lp":"19GB/s","KID24(RTD2818)":"","KID25W":"","K26":"25.6GB/s","KGAI(RTD2811)":"34.1 / 51GB/s","K27Lp":"","K27Mp":"","K28Lp":""}},{"cat":"DDR","item":"Density","data":{"K8Lp":"1.5GB","Q1Hp":"Up to 6GB","K8Hp+":"2GB","KID23":"Up to 2GB","K23F":"1.5GB","K24":"2GB","K25Lp":"2GB(1GB + 0.5GBx2)","KID24(RTD2818)":"Up to 4GB","KID25W":"Up to 4GB","K26":"Up to 3GB","KGAI(RTD2811)":"Up to 16GB","K27Lp":"","K27Mp":"","K28Lp":""}},{"cat":"Ball Pitch/Process","item":"","data":{"K8Lp":"0.8mm / 22nm","Q1Hp":"TBU / 12nm","K8Hp+":"0.8mm / 22nm","KID23":"0.75mm / 12nm","K23F":"","K24":"0.75mm / 12nm","K25Lp":"0.65mm / 22nm","KID24(RTD2818)":"0.65mm / 12nm","KID25W":"0.65mm / 12nm","K26":"0.75mm / 12nm","KGAI(RTD2811)":"0.5mm / 12nm","K27Lp":"0.65mm/22nm","K27Mp":"0.6mm / 22nm","K28Lp":""}},{"cat":"Package","item":"Size","data":{"K8Lp":"22.7 x 22.7","Q1Hp":"35 x 35","K8Hp+":"27 x 27","KID23":"19.8 x 19.8","K23F":"19.8x19.8","K24":"22.7 x 27","K25Lp":"18.9 x 22.6","KID24(RTD2818)":"22.5 x 27","KID25W":"22.7 x 26.3","K26":"22.5 x 27","KGAI(RTD2811)":"17 x 17 / 6 layer","K27Lp":"17.6 x 21.3\n19.0 x 22.6","K27Mp":"19x22.7","K28Lp":""}}],"at":"2026-04-09T07:55:35.887Z"};</script>
+</body></html>
